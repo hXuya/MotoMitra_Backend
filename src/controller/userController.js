@@ -6,6 +6,7 @@ import {sendOtpToEmail} from '../utils/email.js';
 import otpModel from '../model/otpModel.js';
 
 export default class UserController {
+
        async registerUser(req, res)  {
         const { username, email, password, role,phone } = req.body;
     
@@ -44,6 +45,7 @@ export default class UserController {
             user.password = await bcrypt.hash(password, salt);
     
             // Save the user to the database
+           
             if(await user.save()){
                 sendOtpToEmail(email);
             }

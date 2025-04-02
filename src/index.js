@@ -5,12 +5,18 @@ import garageRoute from "./route/garageRoute.js";
 import vehicleRoute from "./route/vehicleRoute.js";
 import reservationRoute from "./route/reservationRoute.js";
 import itemRoute from "./route/itemRoute.js";
+import cors from "cors";
 
 
 const app = express();
 app.use(express.json());
 
-
+app.use(cors({
+    origin: 'http://100.64.204.28:9000', // Replace with Flutter web URL if needed
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  }));
+  
 app.get("/", (req, res) => {
   res.json("Backend Is Working");
 });
