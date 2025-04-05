@@ -122,6 +122,30 @@ export default class UserController {
         res.status(200).json({msg: 'Email verified successfully'});
     }
 
+    async resendOtp(req, res) {
+        const { email } = req.body;
+    
+        try {
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(400).json({ msg: 'User not found' });
+            }
+    
+            const existingOtp = await otpModel.findOne({ owner: user._id });
+            if (existingOtp && existingOtp.expiry > new Date()) {
+                await sendOtpToEmail(user.email);
+                return res.status(200).json({ msg: 'OTP resent successfully' });
+            }
+    
+            await sendOtpToEmail(user.email);
+            res.status(200).json({ msg: 'OTP sent successfully' });
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send({ msg: 'Server error' });
+        }
+    }
+    
+
     async getProfileDetail(req, res){
         try{
             const user = await User.findById(req.decoded.id).select('-password');

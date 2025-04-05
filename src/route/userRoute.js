@@ -15,6 +15,8 @@ router.get("/loggedInUser", verifyToken ,userController.loggedInUser);
 
 router.post("/verify", userController.verifyEmail);
 
+router.post("/resend-otp", userController.resendOtp);
+
 router.get("/profile", verifyToken ,userController.getProfileDetail);
 
 router.put("/change-password", verifyToken ,userController.changePassword);
