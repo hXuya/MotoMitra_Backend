@@ -2,6 +2,7 @@ import { Router } from "express";
 import UserController from "../controller/userController.js";
 import verifyToken from "../middleware/verifyToken.js";
 import verifyAdmin from "../middleware/verifyAdmin.js";
+import upload from "../utils/multerConfig.js";
 const router = Router();
 
 const userController = new UserController();
@@ -18,6 +19,8 @@ router.post("/verify", userController.verifyEmail);
 router.post("/resend-otp", userController.resendOtp);
 
 router.get("/profile", verifyToken ,userController.getProfileDetail);
+
+router.put('/updateProfile', verifyToken, upload.single('profileImage'), userController.updateProfile);
 
 router.put("/change-password", verifyToken ,userController.changePassword);
 

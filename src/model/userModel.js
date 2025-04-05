@@ -7,11 +7,18 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    profileImage: { // Add profileImage field to store the image path
+        type: String,
+        default: ''
+    },
     email: {
         type: String,
         required: true,
         unique: true,
         trim: true
+    },
+    address: {
+        type: String,
     },
     password: {
         type: String,

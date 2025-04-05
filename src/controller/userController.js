@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import {sendOtpToEmail} from '../utils/email.js';
 import otpModel from '../model/otpModel.js';
+import upload from '../utils/multerConfig.js';
 
 export default class UserController {
 
@@ -58,7 +59,7 @@ export default class UserController {
     };
 
     async loginUser(req, res) {
-        const { identifier, password } = req.body; // Use "identifier" instead of "email"
+        const { identifier, password } = req.body; 
       
         try {
           // Check if user exists by email or phone
@@ -167,6 +168,36 @@ export default class UserController {
         }catch(err){
             console.error(err);
             res.status(500).json({msg:err.message});
+        }
+    }
+
+    async updateProfile(req, res) {
+        const { username, address } = req.body;
+
+        try {
+            // Check if the user exists
+            const user = await User.findById(req.decoded.id);
+            if (!user) {
+                return res.status(404).json({ msg: 'User not found' });
+            }
+
+            // Only allow updating of the username, address, and profile image
+            if (username) user.username = username; // Update username
+            if (address) user.address = address;   // Update address
+
+            // Handle profile image upload if provided
+            if (req.file) {
+                const imagePath = path.join('images', req.file.filename); // Save path relative to 'images' folder
+                user.profileImage = imagePath; // Assuming you have a 'profileImage' field in your schema
+            }
+
+            // Save the updated user details
+            await user.save();
+
+            res.status(200).json({ msg: 'Profile updated successfully', data: user });
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).json({ msg: 'Server error' });
         }
     }
 
