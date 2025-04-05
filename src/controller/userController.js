@@ -57,41 +57,55 @@ export default class UserController {
         }
     };
 
-    async loginUser(req, res){
-        const { email, password } = req.body;
-    
+    async loginUser(req, res) {
+        const { identifier, password } = req.body; // Use "identifier" instead of "email"
+      
         try {
-            // Check if user exists
-            let user = await User.findOne({ email });
-            if (!user) {
-                return res.status(400).json({ msg: 'User Not Found' });
-            }
-            if(user.status == "pending"){
-                return res.status(400).json({ msg: 'User not verified' });
-            }
-            if(user.isEmailVerified == false){
-                sendOtpToEmail(email);
-                return res.status(403).json({ msg: 'User Email is not verified' });
-            }
-            let isVerified = await bcrypt.compare(password, user.password);
-            if(!isVerified){
-                return res.status(400).json({ msg: 'Invalid Credentials' });
-            }
-            const payload = {
-                id: user._id,
-                role: user.role
-
-            };
-            let token = jwt.sign(payload
-                , process.env.JWT_SECRET, { expiresIn: 360000 });
-            
-            res.status(200).json({ msg: 'User logged in successfully', data:user, token, role:user.role });
-
-        }catch(err){
-            console.error(err.message);
-            res.status(500).send('Server error')
+          // Check if user exists by email or phone
+          const user = await User.findOne({
+            $or: [{ email: identifier }, { phone: identifier }]
+          });
+      
+          if (!user) {
+            return res.status(400).json({ msg: 'User not found' });
+          }
+      
+          if (user.status === 'pending') {
+            return res.status(400).json({ msg: 'User not verified' });
+          }
+      
+          if (!user.isEmailVerified) {
+            await sendOtpToEmail(user.email);
+            return res.status(403).json({ msg: 'User email is not verified' });
+          }
+      
+          const isVerified = await bcrypt.compare(password, user.password);
+          if (!isVerified) {
+            return res.status(400).json({ msg: 'Invalid credentials' });
+          }
+      
+          const payload = {
+            id: user._id,
+            role: user.role
+          };
+      
+          const token = jwt.sign(payload, process.env.JWT_SECRET, {
+            expiresIn: '1d'
+          });
+      
+          res.status(200).json({
+            msg: 'User logged in successfully',
+            data: user,
+            token,
+            role: user.role
+          });
+      
+        } catch (err) {
+          console.error(err.message);
+          res.status(500).send({ msg: 'Server error' });
         }
-    }
+      }
+      
 
     async loggedInUser(req, res){
         try{
