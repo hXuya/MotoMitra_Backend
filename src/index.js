@@ -12,10 +12,10 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-    origin: 'http://100.64.204.28:9000', // Replace with Flutter web URL if needed
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-  }));
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
   
 app.get("/", (req, res) => {
   res.json("Backend Is Working");
@@ -29,7 +29,7 @@ app.use("/api/item", itemRoute);
 
 // const password = "garage123";
 const password = "garage"
-app.listen(8000, '192.168.1.77', async () => {
+app.listen(8000, async () => {
     try{
         
 
