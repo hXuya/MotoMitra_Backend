@@ -11,6 +11,12 @@ import cors from "cors";
 const app = express();
 app.use(express.json());
 
+app.use('/images', express.static(path.join(__dirname, 'images'), {
+  setHeaders: (res, path) => {
+    res.set('Cache-Control', 'no-cache');
+  }
+}));
+
 app.use(cors({
   origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
