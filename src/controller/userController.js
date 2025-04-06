@@ -167,37 +167,44 @@ export default class UserController {
 
     async updateProfile(req, res) {
         const { username, address, phone } = req.body;
-
+      
         try {
-            const user = await User.findById(req.decoded.id);
-            if (!user) {
-                return res.status(404).json({ msg: 'User not found' });
-            }
-            if (username) user.username = username;
-            if (address) user.address = address;
-            if (phone) user.phone = phone;
-
-            if (req.file) {
-
-                const ext = path.extname(req.file.originalname);
-                const safeUsername = (username || user.username).replace(/\s+/g, '_');
-                const finalPhone = phone || user.phone;
-                const newFileName = `profileImage-${safeUsername}-${finalPhone}${ext}`;
-                const oldPath = req.file.path;
-                const newPath = path.join(path.dirname(oldPath), newFileName);
-
-                fs.renameSync(oldPath, newPath);
-
-                user.profileImage = `images/${newFileName}`;
-            }
-            await user.save();
-            res.status(200).json({ msg: 'Profile updated successfully', data: user });
-            
+          // Find the user by ID
+          const user = await User.findById(req.decoded.id);
+          if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+          }
+      
+          // Update user fields if provided
+          if (username) user.username = username;
+          if (address) user.address = address;
+          if (phone) user.phone = phone;
+      
+          // Check if a new profile image is provided in the request
+          if (req.file) {
+            const ext = path.extname(req.file.originalname); // Extract file extension
+            const email = (user.email || 'unknown').split('@')[0].toLowerCase(); // Extract part before '@' from email
+            const newFileName = `userImage-${email}${ext}`; // Generate new filename
+            const newPath = path.join(imagesDir, newFileName); // Set new path for the image
+      
+            // Rename the uploaded file to match the new filename
+            fs.renameSync(req.file.path, newPath);
+      
+            // Update the user's profileImage field in the database with the new file path
+            user.profileImage = `images/${newFileName}`; // Assuming the 'images' folder is public
+          }
+      
+          // Save the updated user data to the database
+          await user.save();
+      
+          // Respond with success message and updated user data
+          res.status(200).json({ msg: 'Profile updated successfully', data: user });
         } catch (err) {
-            console.error(err);
-            res.status(500).json({ msg: `Server error: ${err.message}` });
+          console.error(err); // Log the error
+          res.status(500).json({ msg: `Server error: ${err.message}` });
         }
-    }
+      }
+      
 
     async changePassword(req, res) {
         try {
