@@ -3,6 +3,7 @@ import UserController from "../controller/userController.js";
 import verifyToken from "../middleware/verifyToken.js";
 import verifyAdmin from "../middleware/verifyAdmin.js";
 import upload from "../utils/multerConfig.js";
+
 const router = Router();
 
 const userController = new UserController();
@@ -27,7 +28,6 @@ router.put("/change-password", verifyToken ,userController.changePassword);
 router.put("/ban/:id", verifyAdmin ,userController.banUser);
 
 router.put("/unban/:id", verifyAdmin ,userController.unBanUser);
-
 
 
 export default router;
