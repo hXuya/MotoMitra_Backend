@@ -14,4 +14,6 @@ router.get("/my-vehicles", verifyUser, vehicleController.getMyVehicles);
 
 router.put("/:id", verifyUser, vehicleController.updateVehicle);
 
+router.delete("/:id", verifyUser, vehicleController.deleteVehicle);
+
 export default router;
