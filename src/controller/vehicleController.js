@@ -1,21 +1,36 @@
 import Vehicle from "../model/vehicleModel.js";
 
 export default class VehicleController{
-    async createVehicle(req, res){
-        const {name, model, type, number} = req.body;
-        if(!name || !model || !type || !number){
-            return res.status(400).json({message: "All fields are required"});
+    async createVehicle(req, res) {
+        const { name, model, type, number } = req.body;
+    
+        if (!name || !model || !type || !number) {
+            return res.status(400).json({ message: "All fields are required" });
         }
-        const vehicle = new Vehicle( {
-            name,
-            model,
-            type,
-            number,
-            owner:req.decoded.id
-        });
-        await vehicle.save();
-        return res.status(200).json({data: vehicle});
+    
+        try {
+            const existingVehicle = await Vehicle.findOne({ number });
+            if (existingVehicle) {
+                return res.status(409).json({ message: "Vehicle number already exists" });
+            }
+    
+            const vehicle = new Vehicle({
+                name,
+                model,
+                type,
+                number,
+                owner: req.decoded.id
+            });
+    
+            await vehicle.save();
+            return res.status(200).json({ data: vehicle });
+    
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: err.message });
+        }
     }
+    
     
     async getAllVehicles(req, res){
         try{

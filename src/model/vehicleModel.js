@@ -18,6 +18,7 @@ const vehicleSchema = new Schema({
     },
     number:{
         type: String,
+        unique: true,
         required: true
     },
     owner: {
