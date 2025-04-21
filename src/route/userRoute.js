@@ -8,7 +8,7 @@ const router = Router();
 
 const userController = new UserController();
 
-// Define routesn //api/user/register
+// Define routes
 router.post("/register", userController.registerUser);
 
 router.post("/login", userController.loginUser);
@@ -28,6 +28,10 @@ router.put("/change-password", verifyToken ,userController.changePassword);
 router.put("/ban/:id", verifyAdmin ,userController.banUser);
 
 router.put("/unban/:id", verifyAdmin ,userController.unBanUser);
+
+router.post("/forget-password", userController.forgetPassword);
+
+router.post("/reset-password", userController.changePasswordWithOtp);
 
 
 export default router;

@@ -131,7 +131,7 @@ export default class GarageController{
 
     async getNearbyGarage(req, res) {
         const { latitude, longitude } = req.query;
-        const radiusInKm = 5;
+        const radiusInKm = req.query.radius || 5;
 
         try {
             // Parse latitude and longitude as numbers

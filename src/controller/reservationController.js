@@ -52,7 +52,7 @@ export default class ReservationController{
 
     async getAcceptedReservations(req, res){
         try{
-            let reservation = await Reservation.find({customer:req.decoded.id, status:"accept"}).populate('vehicle', 'name').populate('garage', 'name location');
+            let reservation = await Reservation.find({customer:req.decoded.id, status:{ $in: ["pending", "started", "recommend", "accept"] }}).populate('vehicle', 'name').populate('garage', 'name location');
             res.status(200).json({msg: 'Reservations fetched successfully', data: reservation});
         }catch(err){
             console.error(err);
@@ -66,7 +66,7 @@ export default class ReservationController{
             if(!garage){
                 return res.status(404).json({msg: 'Garage not found'});
             }
-            let reservations = await Reservation.find({garage:garage._id, status:"accept"}).populate('vehicle').populate('customer', 'username email');
+            let reservations = await Reservation.find({garage:garage._id,  status:{ $in: ["pending", "started", "recommend", "accept"] }}).populate('vehicle').populate('customer', 'username email');
             res.status(200).json({msg: 'Reservations fetched successfully', data: reservations});
         }catch(err){
             console.error(err);
@@ -76,7 +76,7 @@ export default class ReservationController{
 
     async getUserArchivedReservations(req, res){
         try{
-            let reservation = await Reservation.find({customer:req.decoded.id,status: { $ne: "accept" } }).populate('vehicle', 'name').populate('garage', 'name location');
+            let reservation = await Reservation.find({customer:req.decoded.id,status: { $ne:  ["pending", "started", "recommend", "accept"] } }).populate('vehicle', 'name').populate('garage', 'name location');
             res.status(200).json({msg: 'Reservations fetched successfully', data: reservation});
         }catch(err){
             console.error(err);
@@ -90,7 +90,7 @@ export default class ReservationController{
             if(!garage){
                 return res.status(404).json({msg: 'Garage not found'});
             }
-            let reservations = await Reservation.find({garage:garage._id, status: { $ne: "accept" }}).populate('vehicle').populate('customer', 'username email');
+            let reservations = await Reservation.find({garage:garage._id, status: { $ne:  ["pending", "started", "recommend", "accept"] }}).populate('vehicle').populate('customer', 'username email');
             res.status(200).json({msg: 'Reservations fetched successfully', data: reservations});
         }catch(err){
             console.error(err);
@@ -113,6 +113,22 @@ export default class ReservationController{
             reservation[0].status = 'accept';
             await reservation[0].save();
             res.status(200).json({msg: 'Reservation approved successfully', data: reservation});
+        }catch(err){
+            console.error(err);
+            res.status(500).json({msg:err});
+        }
+    }
+
+    async cancelReservationRequest(req, res){
+        try{
+            const {id} = req.params;
+            let reservation = await Reservation.findById(id);
+            if(!reservation){
+                return res.status(400).json({msg: 'Reservation not found'});
+            }
+            reservation.status = 'cancel';
+            await reservation.save();
+            res.status(200).json({msg: 'Reservation cancelled successfully', data: reservation});
         }catch(err){
             console.error(err);
             res.status(500).json({msg:err});
@@ -151,12 +167,13 @@ export default class ReservationController{
             if(reservation.length < 1){
                 return res.status(400).json({msg: 'Reservation not found'});
             }
-            if(reservation[0].workstatus == "pending"){
+            if(reservation[0].workstatus == "accept"){
+                reservation[0].workstatus = "recommend";
+            }else if(reservation[0].workstatus == "recommend"){
                 reservation[0].workstatus = "started";
             }else if(reservation[0].workstatus == "started"){
-                reservation[0].workstatus = "review";
-            }else if(reservation[0].workstatus == "review"){
                 reservation[0].workstatus = "completed";
+                reservation[0].amount = req.query.amount;
             }
             await reservation[0].save();
             res.status(200).json({msg: 'Reservation updated successfully', data: reservation});

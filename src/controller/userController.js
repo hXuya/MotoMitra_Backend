@@ -125,9 +125,10 @@ export default class UserController {
         if(otpData.expiry < new Date()){
             return res.status(400).json({msg: 'OTP expired'});
         }
+        const jwtToken = jwt.sign({id:user[0]._id}, process.env.JWT_SECRET, {expiresIn: '1d'});
         user[0].isEmailVerified = true;
         await user[0].save();
-        res.status(200).json({msg: 'Email verified successfully'});
+        res.status(200).json({msg: 'Email verified successfully', token:jwtToken});
     }
 
     async resendOtp(req, res) {
@@ -253,6 +254,42 @@ export default class UserController {
             console.error(err);
             res.status(500).json({msg:err.message});
         }
+    }
+
+    async forgetPassword(req, res){
+      try{
+        const {email} = req.body;
+        const user = await User.find({email:email});
+        if(user.length === 0){
+            return res.status(400).json({msg: 'User not found'});
+        }
+        sendOtpToEmail(email);
+        res.status(200).json({msg: 'OTP sent successfully'});
+      }catch(err){
+          console.error(err);
+          res.status(500).json({msg:err.message});
+      }
+    }
+
+    async changePasswordWithOtp(req, res){
+      try{
+        const {token, password, confirmPassword} = req.body;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        if(!user){
+            return res.status(400).json({msg: 'User not found'});
+        }
+        if(password != confirmPassword){
+            return res.status(400).json({msg: 'Passwords do not match'});
+        }
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        await user.save();
+        res.status(200).json({msg: 'Password changed successfully'});
+      }catch(err){
+          console.error(err);
+          res.status(500).json({msg:err.message});
+      }
     }
 
     

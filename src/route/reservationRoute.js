@@ -15,6 +15,8 @@ router.get("/user", verifyUser, reservationController.getUserReservation); // re
 
 router.put("/approve/:id", verifyGarage, reservationController.approveReservationRequest); // approve reservation request
 
+router.put("/cancel/:id", verifyUser, reservationController.cancelReservationRequest);
+
 router.put("/reject/:id", verifyGarage, reservationController.rejectReservationRequest); // reject reservation request
 
 router.put("/status/:id", verifyGarage, reservationController.updateReservationStatus); // update reservation status

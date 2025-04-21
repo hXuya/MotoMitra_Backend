@@ -1,6 +1,7 @@
 import Garage from '../model/garageModel.js';
 import ItemModel from '../model/itemModel.js';
 import Reservation from '../model/reservationModel.js';
+import Notification from '../model/notificationModel.js';
 
 export default class ItemController{
     async recommendItem(req, res){
@@ -24,6 +25,11 @@ export default class ItemController{
                 description,
                 reservation
             })
+            const notification = new Notification({
+                title: 'New Item Recommended',
+                description: `A new item has been recommended for your reservation ${reservationData.title}`,
+                user: reservationData.customer
+            });
             await item.save();
             res.status(200).json({msg: 'Item created successfully', data: item});
         }catch(err){
@@ -81,6 +87,14 @@ export default class ItemController{
             }
             item.status = "accept";
             await item.save();
+
+            const reservation = await Reservation.findOne({_id: item.reservation});
+            const garage = await Garage.findOne({_id: reservation.garage});
+            const notification = new Notification({
+                title: 'Item Accepted',
+                description: `Your recommended item has been accepted for reservation ${item.reservation.title}`,
+                user: garage.owner
+            });
             res.status(200).json({msg: 'Item accepted successfully', data: item});
         }catch(err){
             console.error(err);
